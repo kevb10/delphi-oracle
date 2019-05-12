@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.http import HttpResponse
 
 from .models import Stock
 from stocker import Stocker
@@ -9,24 +9,11 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 def index(request):
-  template = 'delphi/index.html'
-  prediction = {}
-  context = {
-      'prediction': prediction,
-  }
+  return HttpResponse("WELCOME", content_type='application/json')
 
-  company = Stocker(ticker="MSFT", exchange='EOD')
+def predict(request, ticker_name):
+  company = Stocker(ticker=ticker_name)
+  data = company.retrieve_stock_data(start_date=None, end_date=None, stats=['Adj. Close'], plot_type='basic')
+  json = data.to_json(orient='split') 
 
-  # stock_history = company.stock()
-
-  if company:
-      company.plot_stock(start_date=None, end_date=None, stats=['Adj. Close'], plot_type='basic')
-
-  return render(request, template, context)
-
-
-def predict(request, ticker_name, exchange, days):
-	company = Stocker(ticker=ticker_name, exchange='EOD')
-
-	if company:
-		Stocker.plot_stock(start_date=None, end_date=None, stats=['Adj. Close'], plot_type='basic')
+  return HttpResponse(json, content_type='application/json')
