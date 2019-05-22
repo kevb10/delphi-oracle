@@ -6,11 +6,13 @@ verify_ssl = false
 [dev-packages]
 
 [packages]
+django = "*"
 quandl = "*"
 pandas = "*"
 numpy = "*"
 fbprophet = "*"
 matplotlib = "*"
+pytrends = "*"
 
 [requires]
 python_version = "3.7"
