@@ -1,1 +1,55 @@
 Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+ERROR:fbprophet:Importing plotly failed. Interactive plots will not work.
+Watching for file changes with StatReloader
+ERROR:fbprophet:Importing plotly failed. Interactive plots will not work.
+Invalid HTTP_HOST header: 'delphi.foussa.io'. You may need to add 'delphi.foussa.io' to ALLOWED_HOSTS.
+ERROR:django.security.DisallowedHost:Invalid HTTP_HOST header: 'delphi.foussa.io'. You may need to add 'delphi.foussa.io' to ALLOWED_HOSTS.
+Bad Request: /
+WARNING:django.request:Bad Request: /
+[24/May/2019 23:56:08] "GET / HTTP/1.1" 400 57387
+Invalid HTTP_HOST header: 'delphi.foussa.io'. You may need to add 'delphi.foussa.io' to ALLOWED_HOSTS.
+ERROR:django.security.DisallowedHost:Invalid HTTP_HOST header: 'delphi.foussa.io'. You may need to add 'delphi.foussa.io' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+WARNING:django.request:Bad Request: /favicon.ico
+[24/May/2019 23:56:09] "GET /favicon.ico HTTP/1.1" 400 57434
+Invalid HTTP_HOST header: 'delphi.foussa.io'. You may need to add 'delphi.foussa.io' to ALLOWED_HOSTS.
+ERROR:django.security.DisallowedHost:Invalid HTTP_HOST header: 'delphi.foussa.io'. You may need to add 'delphi.foussa.io' to ALLOWED_HOSTS.
+Bad Request: /delphi/AMZN
+WARNING:django.request:Bad Request: /delphi/AMZN
+[24/May/2019 23:56:25] "GET /delphi/AMZN HTTP/1.1" 400 57508
+Invalid HTTP_HOST header: 'delphi.foussa.io'. You may need to add 'delphi.foussa.io' to ALLOWED_HOSTS.
+ERROR:django.security.DisallowedHost:Invalid HTTP_HOST header: 'delphi.foussa.io'. You may need to add 'delphi.foussa.io' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+WARNING:django.request:Bad Request: /favicon.ico
+[24/May/2019 23:56:25] "GET /favicon.ico HTTP/1.1" 400 57445
+/var/www/delphi/oracle/settings.py changed, reloading.
+INFO:django.utils.autoreload:/var/www/delphi/oracle/settings.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+May 24, 2019 - 23:55:54
+Django version 2.2.1, using settings 'oracle.settings'
+Starting development server at http://0.0.0.0:80/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+ERROR:fbprophet:Importing plotly failed. Interactive plots will not work.
+/var/www/delphi/stocker.py:178: FutureWarning: Comparing Series of datetimes with 'datetime.date'.  Currently, the
+'datetime.date' is coerced to a datetime. In the future pandas will
+not coerce, and a TypeError will be raised. To retain the current
+behavior, convert the 'datetime.date' to a datetime with
+'pd.Timestamp'.
+  trim_df = df[(df['Date'] >= start_date.date()) &
+/var/www/delphi/stocker.py:179: FutureWarning: Comparing Series of datetimes with 'datetime.date'.  Currently, the
+'datetime.date' is coerced to a datetime. In the future pandas will
+not coerce, and a TypeError will be raised. To retain the current
+behavior, convert the 'datetime.date' to a datetime with
+'pd.Timestamp'.
+  (df['Date'] <= end_date.date())]
+[24/May/2019 23:58:15] "GET /delphi/AMZN HTTP/1.1" 200 666480
+[24/May/2019 23:58:17] "GET /delphi/AMZN HTTP/1.1" 200 666480
+[24/May/2019 23:58:20] "GET /delphi/AMZN HTTP/1.1" 200 666480
+[24/May/2019 23:58:21] "GET /delphi/AMZN HTTP/1.1" 200 666480
+Not Found: /favicon.ico
+WARNING:django.request:Not Found: /favicon.ico
+[24/May/2019 23:58:23] "GET /favicon.ico HTTP/1.1" 404 2081

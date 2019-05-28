@@ -11,9 +11,9 @@ django = "*"
 quandl = "*"
 pandas = "*"
 numpy = "*"
-fbprophet = "*"
 matplotlib = "*"
 pytrends = "*"
+django-cors-headers = "*"
 
 [requires]
-python_version = "3.7"
+

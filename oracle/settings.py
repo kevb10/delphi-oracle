@@ -25,12 +25,15 @@ SECRET_KEY = 'jqnb_p)94v6xxj21wq4fe@0w2o=f)n^@ah88a2wv-xdy=c_08g'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['76.205.176.208', 'localhost']
+ALLOWED_HOSTS = ['delphi.foussa.io', 'localhost']
 
+# CORS
+CORS_ORIGIN_ALLOW_ALL = True
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'delphi.apps.DelphiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,6 +44,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

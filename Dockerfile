@@ -7,14 +7,19 @@ RUN apt-get update && apt-get upgrade -y && apt-get autoremove && apt-get autocl
 RUN apt-get install -y \
     libffi-dev \
     libssl-dev \
-    libmysqlclient-dev \
+    default-libmysqlclient-dev \
     libxml2-dev \
     libxslt-dev \
     libjpeg-dev \
     libfreetype6-dev \
     zlib1g-dev \
     net-tools \
-    vim
+    vim \
+    build-essential \
+    python3-dev
+
+RUN pip install pystan 
+RUN pip install fbprophet
 
 # Project Files and Settings
 ARG PROJECT=delphi
@@ -23,10 +28,8 @@ RUN mkdir -p $PROJECT_DIR
 WORKDIR $PROJECT_DIR
 COPY Pipfile Pipfile.lock ./
 RUN pip install -U pipenv
-RUN pipenv install --system
 
 # Server
-EXPOSE 8000
+EXPOSE 80
 STOPSIGNAL SIGINT
-ENTRYPOINT ["python", "manage.py"]
-CMD ["runserver", "0.0.0.0:8000"]
+CMD ["./docker-entrypoint.sh"]
