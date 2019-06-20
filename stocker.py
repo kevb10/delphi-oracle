@@ -409,7 +409,8 @@ class Stocker():
         # Make and predict for next year with future dataframe
         future = model.make_future_dataframe(periods=days, freq='D')
         future = model.predict(future)
-        
+
+        # TODO: Remove after done implementing front-end
         # if days > 0:
         #     # Print the predicted price
         #     print('Predicted Price on {} = ${:.2f}'.format(
@@ -438,7 +439,10 @@ class Stocker():
         # plt.title(title);
         # plt.show()
         #
-        return stock_history, future
+
+        future = future.to_string()
+
+        return future
       
     # Evaluate prediction model for one year
     def evaluate_prediction(self, start_date=None, end_date=None, nshares = None):

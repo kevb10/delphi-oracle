@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+import json
 
 from .models import Stock
 from stocker import Stocker
@@ -17,6 +18,17 @@ def predict(request, ticker_name):
   data = company.retrieve_stock_data(start_date=None, end_date=None, stats=['Adj. Close'], plot_type='basic')
   json = data.to_json(orient='split')
 
-  print(company.create_prophet_model())
-
   return HttpResponse(json, content_type='application/json')
+
+
+def evaluate(request, ticker_name):
+  company = Stocker(ticker=ticker_name)
+  historical_data, future_predictions = company.create_prophet_model()
+  jsond = {
+    # 'history': historical_data,
+    'future': future_predictions
+  }
+
+  json_data = json.dumps(jsond).to_json(orient='split')
+
+  return HttpResponse(json_data, content_type='application/json')
