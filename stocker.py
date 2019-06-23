@@ -229,49 +229,6 @@ class Stocker():
             end_date = self.max_date
         
         stock_plot = self.make_df(start_date, end_date)
-
-        # colors = ['r', 'b', 'g', 'y', 'c', 'm']
-        
-        # for i, stat in enumerate(stats):
-            
-        #     stat_min = min(stock_plot[stat])
-        #     stat_max = max(stock_plot[stat])
-
-        #     stat_avg = np.mean(stock_plot[stat])
-            
-        #     date_stat_min = stock_plot[stock_plot[stat] == stat_min]['Date']
-        #     date_stat_min = date_stat_min[date_stat_min.index[0]].date()
-        #     date_stat_max = stock_plot[stock_plot[stat] == stat_max]['Date']
-        #     date_stat_max = date_stat_max[date_stat_max.index[0]].date()
-            
-        #     print('Maximum {} = {:.2f} on {}.'.format(stat, stat_max, date_stat_max))
-        #     print('Minimum {} = {:.2f} on {}.'.format(stat, stat_min, date_stat_min))
-        #     print('Current {} = {:.2f} on {}.\n'.format(stat, self.stock.ix[len(self.stock) - 1, stat], self.max_date.date()))
-            
-            # # Percentage y-axis
-            # if plot_type == 'pct':
-            #     # Simple Plot 
-            #     plt.style.use('fivethirtyeight');
-            #     if stat == 'Daily Change':
-            #         plt.plot(stock_plot['Date'], 100 * stock_plot[stat],
-            #              color = colors[i], linewidth = 2.4, alpha = 0.9,
-            #              label = stat)
-            #     else:
-            #         plt.plot(stock_plot['Date'], 100 * (stock_plot[stat] -  stat_avg) / stat_avg,
-            #              color = colors[i], linewidth = 2.4, alpha = 0.9,
-            #              label = stat)
-
-            #     plt.xlabel('Date'); plt.ylabel('Change Relative to Average (%)'); plt.title('%s Stock History' % self.symbol); 
-            #     plt.legend(prop={'size':10})
-            #     plt.grid(color = 'k', alpha = 0.4); 
-
-            # # Stat y-axis
-            # elif plot_type == 'basic':
-            #     plt.style.use('fivethirtyeight');
-            #     plt.plot(stock_plot['Date'], stock_plot[stat], color = colors[i], linewidth = 3, label = stat, alpha = 0.8)
-            #     plt.xlabel('Date'); plt.ylabel('US $'); plt.title('%s Stock History' % self.symbol); 
-            #     plt.legend(prop={'size':10})
-            #     plt.grid(color = 'k', alpha = 0.4); 
       
         # plt.show();
         return stock_plot
@@ -375,7 +332,7 @@ class Stocker():
         
         if self.monthly_seasonality:
             # Add monthly seasonality
-            model.add_seasonality(name = 'monthly', period = 30.5, fourier_order = 5)
+            model.add_seasonality(name='monthly', period=30.5, fourier_order=5)
         
         return model
     
@@ -437,12 +394,12 @@ class Stocker():
     # Basic prophet model for specified number of days  
     def create_prophet_model(self, days=0, resample=False):
         
-        self.reset_plot()
+        # self.reset_plot()
         
         model = self.create_model()
         
         # Fit on the stock history for self.training_years number of years
-        stock_history = self.stock[self.stock['Date'] > (self.max_date - pd.DateOffset(years = self.training_years)).date()]
+        stock_history = self.stock[self.stock['Date'] > (self.max_date - pd.DateOffset(years=self.training_years)).date()]
         
         if resample:
             stock_history = self.resample(stock_history)
@@ -450,38 +407,38 @@ class Stocker():
         model.fit(stock_history)
         
         # Make and predict for next year with future dataframe
-        future = model.make_future_dataframe(periods = days, freq='D')
+        future = model.make_future_dataframe(periods=days, freq='D')
         future = model.predict(future)
         
-        if days > 0:
-            # Print the predicted price
-            print('Predicted Price on {} = ${:.2f}'.format(
-                future.ix[len(future) - 1, 'ds'].date(), future.ix[len(future) - 1, 'yhat']))
-
-            title = '%s Historical and Predicted Stock Price'  % self.symbol
-        else:
-            title = '%s Historical and Modeled Stock Price' % self.symbol
-        
-        # Set up the plot
-        fig, ax = plt.subplots(1, 1)
-
-        # Plot the actual values
-        ax.plot(stock_history['ds'], stock_history['y'], 'ko-', linewidth = 1.4, alpha = 0.8, ms = 1.8, label = 'Observations')
-        
-        # Plot the predicted values
-        ax.plot(future['ds'], future['yhat'], 'forestgreen',linewidth = 2.4, label = 'Modeled');
-
-        # Plot the uncertainty interval as ribbon
-        ax.fill_between(future['ds'].dt.to_pydatetime(), future['yhat_upper'], future['yhat_lower'], alpha = 0.3, 
-                       facecolor = 'g', edgecolor = 'k', linewidth = 1.4, label = 'Confidence Interval')
-
-        # Plot formatting
-        plt.legend(loc = 2, prop={'size': 10}); plt.xlabel('Date'); plt.ylabel('Price $');
-        plt.grid(linewidth=0.6, alpha = 0.6)
-        plt.title(title);
-        plt.show()
-        
-        return model, future
+        # if days > 0:
+        #     # Print the predicted price
+        #     print('Predicted Price on {} = ${:.2f}'.format(
+        #         future.ix[len(future) - 1, 'ds'].date(), future.ix[len(future) - 1, 'yhat']))
+        #
+        #     title = '%s Historical and Predicted Stock Price' % self.symbol
+        # else:
+        #     title = '%s Historical and Modeled Stock Price' % self.symbol
+        #
+        # # Set up the plot
+        # fig, ax = plt.subplots(1, 1)
+        #
+        # # Plot the actual values
+        # ax.plot(stock_history['ds'], stock_history['y'], 'ko-', linewidth=1.4, alpha=0.8, ms=1.8, label='Observations')
+        #
+        # # Plot the predicted values
+        # ax.plot(future['ds'], future['yhat'], 'forestgreen', linewidth=2.4, label='Modeled');
+        #
+        # # Plot the uncertainty interval as ribbon
+        # ax.fill_between(future['ds'].dt.to_pydatetime(), future['yhat_upper'], future['yhat_lower'], alpha=0.3,
+        #                facecolor='g', edgecolor='k', linewidth=1.4, label='Confidence Interval')
+        #
+        # # Plot formatting
+        # plt.legend(loc=2, prop={'size': 10}); plt.xlabel('Date'); plt.ylabel('Price $');
+        # plt.grid(linewidth=0.6, alpha=0.6)
+        # plt.title(title);
+        # plt.show()
+        #
+        return stock_history, future
       
     # Evaluate prediction model for one year
     def evaluate_prediction(self, start_date=None, end_date=None, nshares = None):

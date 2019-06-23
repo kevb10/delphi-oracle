@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 def index(request):
+  # TODO: Create a simple landing page
   return HttpResponse("WELCOME", content_type='application/json')
 
 def predict(request, ticker_name):
