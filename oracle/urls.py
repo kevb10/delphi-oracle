@@ -17,6 +17,6 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('delphi/', include('delphi.urls')),
+    path('api/v0.1/', include('delphi.urls')),
     path('admin/', admin.site.urls),
 ]
