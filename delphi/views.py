@@ -12,8 +12,8 @@ def index(request):
   return HttpResponse("WELCOME", content_type='application/json')
 
 def predict(request, ticker_name):
-  company = Stocker(ticker=ticker_name)
+  company = Stocker(ticker=ticker_name, exchange='EOD')
   data = company.retrieve_stock_data(start_date=None, end_date=None, stats=['Adj. Close'], plot_type='basic')
-  json = data.to_json(orient='split') 
+  json = data.to_json(orient='columns') 
 
   return HttpResponse(json, content_type='application/json')
