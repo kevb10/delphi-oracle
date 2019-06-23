@@ -17,7 +17,7 @@ import matplotlib
 class Stocker():
     
     # Initialization requires a ticker symbol
-    def __init__(self, ticker, exchange='WIKI'):
+    def __init__(self, ticker, exchange='EOD'):
         
         # Enforce capitalization
         ticker = ticker.upper()
@@ -87,7 +87,7 @@ class Stocker():
         self.yearly_seasonality = True
         self.changepoints = None
         
-        print('{} Stocker Initialized. Data covers {} to {}.'.format(self.symbol,
+        print('{} Oracle Initialized. Data covers {} to {}.'.format(self.symbol,
                                                                      self.min_date.date(),
                                                                      self.max_date.date()))
     
@@ -440,9 +440,7 @@ class Stocker():
         # plt.show()
         #
 
-        future = future.to_string()
-
-        return future
+        return stock_history, future
       
     # Evaluate prediction model for one year
     def evaluate_prediction(self, start_date=None, end_date=None, nshares = None):
