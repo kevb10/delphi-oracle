@@ -1,9 +1,4 @@
 #!/bin/bash
-# Activate virtual environment
-pipenv shell
-
-# Install dependencies
-pipenv install
 
 # Collect static files
 echo "Collect static files"
