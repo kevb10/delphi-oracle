@@ -1,37 +1,34 @@
-from django.http import HttpResponse
 import json
 
-from .models import Stock
+from django.http import HttpResponse
+
 from stocker import Stocker
 
-# matplotlib pyplot for plotting
-import matplotlib.pyplot as plt
-
-import matplotlib
 
 def index(request):
-  # TODO: Create a simple landing page
-  return HttpResponse("WELCOME", content_type='application/json')
+    # TODO: Create a simple landing page
+    return HttpResponse("WELCOME", content_type='application/json')
+
 
 def predict(request, ticker_name):
-  company = Stocker(ticker=ticker_name)
-  stock_data = company.retrieve_stock_data(start_date=None, end_date=None, stats=['Adj. Close'], plot_type='basic')
-  json_stock_data = data.to_json(orient='split')
+    company = Stocker(ticker=ticker_name)
+    stock_data = company.retrieve_stock_data(start_date=None, end_date=None, stats=['Adj. Close'], plot_type='basic')
+    json_stock_data = stock_data.to_json(orient='split')
 
-  return HttpResponse(json_stock_data, content_type='application/json')
+    return HttpResponse(json_stock_data, content_type='application/json')
 
 
 def evaluate(request, ticker_name):
-  company = Stocker(ticker=ticker_name)
-  past_performance, model_prediction = company.create_prophet_model()
-  past_performance = past_performance.to_json(orient='split')
-  model_prediction = model_prediction.to_json(orient='split')
+    company = Stocker(ticker=ticker_name)
+    past_performance, model_prediction = company.create_prophet_model()
+    past_performance = past_performance.to_json(orient='split')
+    model_prediction = model_prediction.to_json(orient='split')
 
-  evaluation_model = {
-    'history' : past_performance,
-    'prediction' : model_prediction
-  }
+    evaluation_model = {
+        'history': past_performance,
+        'prediction': model_prediction
+    }
 
-  json_evaluation_model = json.dumps(evaluation_model)
+    json_evaluation_model = json.dumps(evaluation_model)
 
-  return HttpResponse(json_evaluation_model, content_type='application/json')
+    return HttpResponse(json_evaluation_model, content_type='application/json')
