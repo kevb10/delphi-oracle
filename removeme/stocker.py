@@ -33,14 +33,10 @@ class Stocker():
         # Retrieval the financial data
         try:
             stock = self.get_stock(ticker)
-            breakpoint()        
         except Exception as e:
             print('Error Retrieving Data.')
             print(e)
             return
-        
-        # Set the index to a column called timestamp
-        stock = stock.reset_index(level=0)
         
         # Columns required for prophet
         stock['ds'] = stock['timestamp']
@@ -123,9 +119,12 @@ class Stocker():
         ticker + 
         '&apikey=' + self.alpha_vantage_api_key + 
         '&outputsize=full&datatype=csv')
-        breakpoint()    
 
-        return json.loads(pd.read_csv(url))
+        stock_data = pd.read_csv(url, parse_dates=['timestamp'])
+        stock_data['index'] = stock_data['timestamp']
+        stock_data = stock_data.set_index('index')
+
+        return stock_data
     
     """
     Make sure start and end dates are in the range and can be
