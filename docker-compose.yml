@@ -7,18 +7,18 @@ networks:
     external: false
 
 services:
-  django:
+  oracle:
     build:
       context: .
       dockerfile: Dockerfile
     image: delphi
     stdin_open: true
     tty: true
-    labels:
-      - traefik.backend=django
-      - traefik.frontend.rule=Host:delphi.foussa.io
-      - traefik.docker.network=proxy-web-network
-      - traefik.port=80
+    # labels:
+      # - traefik.backend=oracle
+      # - traefik.frontend.rule=Host:delphi.foussa.io
+      # - traefik.docker.network=proxy-web-network
+      # - traefik.port=9095
     networks:
       - proxy-web-network
     restart: always

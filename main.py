@@ -6,10 +6,6 @@ import requests
 
 app = Flask(__name__)
 
-# @app.route('/')
-# def main():
-#     return render_template('main.html')
-
 @app.route('/', methods=['POST', 'GET'])
 def main():
     prediction_result = [] * 5
