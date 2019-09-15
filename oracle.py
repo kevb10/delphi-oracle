@@ -5,7 +5,6 @@ import numpy as np
 import fbprophet
 import pytrends
 import json
-from urllib.request import urlopen
 from pytrends.request import TrendReq
 
 
@@ -14,10 +13,12 @@ from pytrends.request import TrendReq
 class Oracle():
     
     # Initialization requires a ticker symbol
-    def __init__(self, ticker, exchange='WIKI'):
+    def __init__(self, ticker, sesh):
         # Enforce capitalization
-        ticker = ticker.upper()
+        ticker = ticker.strip().upper()
         self.alpha_vantage_api_key = 'YHST3SHIZZX5VRUA'
+
+        self.session = sesh 
 
         # Initialize Alpha Vantage
         self.macd_data = self.get_macd(ticker)
@@ -83,6 +84,10 @@ class Oracle():
         self.yearly_seasonality = True
         self.changepoints = None
  
+
+    def close(self):
+        self.session.close()
+
     """
     MACD daily, close
     """
@@ -92,7 +97,7 @@ class Oracle():
         '&interval=daily&series_type=close&apikey=' + 
         self.alpha_vantage_api_key)
 
-        return json.loads(urlopen(url).read())
+        return json.loads(self.session.get(url, verify=False).content)
 
     """
     Stoch RSI daily, close, period 200, fast k 14, fast d, 14
@@ -103,7 +108,7 @@ class Oracle():
         '&interval=daily&time_period=200&series_type=close&fastkperiod=14&fastdperiod=14&fastdmatype=1&apikey=' + 
         self.alpha_vantage_api_key)
 
-        return json.loads(urlopen(url).read())
+        return json.loads(self.session.get(url, verify=False).content)
 
     """
     Fetch stock data
@@ -221,8 +226,8 @@ class Oracle():
         
         return model
       
-    # Evaluate prediction model for one year
-    def evaluate_prediction(self, nshares = None):
+    # Find accuracy
+    def find_accuracy(self):
         # Default start date is one year before end of data
         # Default end date is end date of data
         start_date = self.max_date - pd.DateOffset(years=1)
@@ -329,7 +334,7 @@ class Oracle():
     # Predict the future price for a given range of days
     def predict_future(self, days=30):
         #Set the best changepointprior
-        self.changepoint_prior_scale = 1 #change this to find it programmatically
+        self.changepoint_prior_scale = self.changepoint_prior_validation()
 
         # Use past self.training_years years for training
         train = self.stock[self.stock['timestamp'] > (max(self.stock['timestamp']) - pd.DateOffset(years=self.training_years)).date()]
@@ -364,11 +369,16 @@ class Oracle():
         future_decrease = future[future['direction'] == 0]
         
         return future
-        
-    def find_best_changepoint_prior_constant(self):
+
+
+    def changepoint_prior_validation(self):
+        # Default start date is two years before end of data
+        # Default end date is one year before end of data
         start_date = self.max_date - pd.DateOffset(years=2)
         end_date = self.max_date - pd.DateOffset(years=1)
-            
+
+        changepoint_priors = [0.001, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+        
         # Convert to pandas datetime for indexing dataframe
         start_date = pd.to_datetime(start_date)
         end_date = pd.to_datetime(end_date)
@@ -384,18 +394,18 @@ class Oracle():
 
         eval_days = (max(test['timestamp']).date() - min(test['timestamp']).date()).days
         
-        results = pd.DataFrame(0, index = list(range(29)), 
+        results = pd.DataFrame(0, index = list(range(len(changepoint_priors))), 
             columns = ['cps', 'train_err', 'train_range', 'test_err', 'test_range'])
 
-        # Iterate through all the changepoints and make models
-        i = 0
-        max_cps = 5
-        
-        while max_cps > 0:
-            results.ix[i, 'cps'] = max_cps
+        # Make these very high because we want them to be as close to 0 as possible
+        best_cps_val = 1000
+        best_accuracy = 1000
+        # Iterate through all the changepoints and find the best one
+        for i, prior in enumerate(changepoint_priors):
+            results.ix[i, 'cps'] = prior
             
             # Select the changepoint
-            self.changepoint_prior_scale = max_cps
+            self.changepoint_prior_scale = prior
             
             # Create and train a model with the specified cps
             model = self.create_model()
@@ -419,13 +429,14 @@ class Oracle():
             
             results.ix[i, 'test_err'] = avg_test_error
             results.ix[i, 'test_range'] = avg_test_uncertainty
-            results.ix[i, 'test_average'] = abs(avg_test_uncertainty - avg_test_error) / 2
-            results.ix[i, 'accuracy'] = self.evaluate_prediction()
 
-            i = i+1
-            max_cps = round(max_cps-.05, 2)
-            print(max_cps)
+            average_errors = (avg_test_error + avg_test_uncertainty) / 2
+            acc = self.find_accuracy()
+            accuracy = average_errors / acc
 
-        results[results > 0]
-        return results
+            if min(best_accuracy, accuracy) < best_accuracy:
+                best_cps_val = prior
+                best_accuracy = accuracy
+
+        return best_cps_val
        
