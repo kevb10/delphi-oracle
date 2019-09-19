@@ -65,7 +65,11 @@
                     </tr>
                     {% for daily in future["prediction"] %}
                     <tr>
-                        <td>{{ daily }}</td>
+                        {% if future["direction"][loop.index] > 0 %}
+                        <td style="background-color: lightgreen">{{ daily }}</td>
+                        {% else %}
+                        <td style="background-color: lightsalmon">{{ daily }}</td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </table>
