@@ -3,8 +3,6 @@ version: "2"
 networks:
   proxy-web-network:
     external: true
-  internal:
-    external: false
 
 services:
   oracle:
@@ -16,11 +14,6 @@ services:
     ports:
       - "5000:5000"
     tty: true
-    # labels:
-      # - traefik.backend=oracle
-      # - traefik.frontend.rule=Host:delphi.foussa.io
-      # - traefik.docker.network=proxy-web-network
-      # - traefik.port=9095
     networks:
       - proxy-web-network
     restart: always
