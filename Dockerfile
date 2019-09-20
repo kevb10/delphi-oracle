@@ -31,9 +31,6 @@ COPY Pipfile Pipfile.lock ./
 RUN pip install -U pipenv
 RUN pipenv install --system
 
-RUN sed -i 's/.normalize/._normalize/g'  '/usr/local/lib/python3.7/site-packages/pytrends/request.py'
-
 # Server
-EXPOSE 9095
 STOPSIGNAL SIGINT
 CMD ["./docker-entrypoint.sh"]
