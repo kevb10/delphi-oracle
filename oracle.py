@@ -5,6 +5,8 @@ import numpy as np
 import fbprophet
 import pytrends
 import json
+import pickle
+import os
 from pytrends.request import TrendReq
 
 
@@ -334,19 +336,30 @@ class Oracle():
     # Predict the future price for a given range of days
     def predict_future(self, days=30):
         #Set the best changepointprior
-        self.changepoint_prior_scale = self.changepoint_prior_validation()
+        # self.changepoint_prior_scale = self.changepoint_prior_validation()
+        
+        model = None
+        isNew = False
 
-        # Use past self.training_years years for training
-        train = self.stock[self.stock['timestamp'] > (max(self.stock['timestamp']) - pd.DateOffset(years=self.training_years)).date()]
-        
-        model = self.create_model()
-        
-        model.fit(train)
-        
+        if not os.path.exists('persistence/' + self.symbol):
+            with open('persistence/' + self.symbol, 'w'): pass
+        else:
+            if os.path.getsize('persistence/' + self.symbol) > 0:
+                with open('persistence/' + self.symbol, 'rb') as handle:
+                    model = pickle.load(handle)
+
+        if model is None:
+            # Use past self.training_years years for training
+            train = self.stock[self.stock['timestamp'] > (max(self.stock['timestamp']) - pd.DateOffset(years=self.training_years)).date()]
+            
+            model = self.create_model()
+            model.fit(train)
+            isNew = True
+
         # Future dataframe with specified number of days to predict
         future = model.make_future_dataframe(periods=days, freq='D')
         future = model.predict(future)
-        
+            
         # Only concerned with future dates
         future = future[future['ds'] >= max(self.stock['timestamp']).date()]
         
@@ -364,9 +377,10 @@ class Oracle():
         # Rename the columns for presentation
         future = future.rename(columns={'ds': 'timestamp', 'yhat': 'estimate', 'diff': 'change', 
                                         'yhat_upper': 'upper', 'yhat_lower': 'lower'})
-        
-        future_increase = future[future['direction'] == 1]
-        future_decrease = future[future['direction'] == 0]
+
+        if isNew:
+            with open('persistence/' + self.symbol, 'wb') as handle:
+                pickle.dump(model, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
         return future
 
