@@ -32,6 +32,6 @@ RUN pip install -U pipenv
 RUN pipenv install --system
 
 # Server
-EXPOSE 9095
+#EXPOSE 5000
 STOPSIGNAL SIGINT
 CMD ["./docker-entrypoint.sh"]
