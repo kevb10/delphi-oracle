@@ -8,16 +8,16 @@ app = Flask(__name__)
 
 @app.route('/', methods=['POST', 'GET'])
 def main():
-    prediction_estimate = [] * 5
-    prediction_direction = [] * 5
-    result = {} 
+    prediction_estimate = [] 
+    prediction_direction = [] 
+    result = {}
 
     if request.method == 'POST':
         symbol = request.form.get('symbol')
         stock = Oracle(symbol,  requests.Session())
-        prediction = stock.predict_future(days=5)
-        prediction_estimate = prediction['estimate'].values
-        prediction_direction = prediction['direction'].values
+        prediction = stock.predict_future(days=15)
+        prediction_estimate = prediction['estimate'].to_numpy()
+        prediction_direction = prediction['direction'].to_numpy()
         result["ticker"] = symbol.upper()
 
     result["prediction"] = prediction_estimate
