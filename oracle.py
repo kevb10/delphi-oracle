@@ -365,9 +365,6 @@ class Oracle():
         future = future.rename(columns={'ds': 'timestamp', 'yhat': 'estimate', 'diff': 'change', 
                                         'yhat_upper': 'upper', 'yhat_lower': 'lower'})
         
-        future_increase = future[future['direction'] == 1]
-        future_decrease = future[future['direction'] == 0]
-        
         return future
 
 

@@ -10,7 +10,7 @@ app = Flask(__name__)
 def main():
     prediction_estimate = [] * 5
     prediction_direction = [] * 5
-    result = {}
+    result = {} 
 
     if request.method == 'POST':
         symbol = request.form.get('symbol')
