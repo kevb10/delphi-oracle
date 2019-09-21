@@ -15,7 +15,10 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
+    <!-- CharJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 
+    <!-- Basic bootstrap style -->
     <style>
         .bd-placeholder-img {
             font-size: 1.125rem;
@@ -56,19 +59,37 @@
                     <input type="submit" value="GO">
                 </form>
             </div>
+
             {% if future["prediction"]|length > 0 %}
-            <h2>Predictions</h2>
             <div>
-                <table>
-                    <tr>
-                        <td>{{ future["ticker"] }}</td>
-                    </tr>
-                    {% for daily in future["prediction"] %}
-                    <tr>
-                        <td style="background-color: lightgreen">{{ daily }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
+                <canvas id="myChart" width="400" height="400"></canvas>
+                <script>
+                    var presets = window.chartColors;
+                    var ctx = document.getElementById('myChart').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: {{ future["prediction"].timestamp.values | list }},
+                    datasets: [{
+                        label: "{{ future["ticker"] }}",
+                        data: {{ future["prediction"].estimate.values | list }},
+                        borderWidth: 1
+                    }]
+                },
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: false
+                                }
+                            }]
+                        }
+                    }
+            });
+
+                    myChart.update();
+                </script>
+
             </div>
             {% endif %}
         </div>

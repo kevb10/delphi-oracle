@@ -204,7 +204,7 @@ class Oracle():
         
         # Find all of the weekends
         for i, date in enumerate(dataframe['ds']):
-            if (date.weekday()) == 5 | (date.weekday() == 6):
+            if date.weekday() > 4:
                 weekends.append(i)
             
         # Drop the weekends
