@@ -5,10 +5,14 @@ import requests
 
 class TestStockPrediction(unittest.TestCase):
 
+    # def setUp(self):
+        # self.oracle = Oracle("msft", requests.session())
+        # self.helper = Helper(self.oracle)
+
     def test_stock_initalized(self):
-        oracle = Oracle("tsla", requests.session())
-        helper = Helper(oracle)
-        result = helper.prediction(1000)
+        self.oracle = Oracle("msft", requests.session())
+        self.helper = Helper(self.oracle)
+        result = self.helper.prediction(1000)
         
         prediction = result['prediction']
         hold = result['hold']
@@ -17,6 +21,12 @@ class TestStockPrediction(unittest.TestCase):
         print(hold)
 
         assert prediction >= hold
+
+    def test_reporter(self):
+        self.oracle = Oracle("msft", requests.session())
+        self.oracle.report()
+
+        assert 0 == 0
 
 if __name__ == '__main__':
     unittest.main()

@@ -6,6 +6,7 @@ import fbprophet
 import pytrends
 import json
 import pickle
+import csv
 import os
 from pytrends.request import TrendReq
 
@@ -453,4 +454,18 @@ class Oracle():
                 best_accuracy = accuracy
 
         return best_cps_val
+
+    def report(self):
+        # Find me some money makers given a list
+        # of all publicly traded companies
+        companies = pd.read_table("companies.csv", sep=",")
+        # errors = ""
+        with open("report.txt", "a+") as report:
+            for company in companies:
+                try:
+                    if self.should_trade():
+                        report.write(company + "\n")
+
+                except Exception as e:
+                    print(e)
        
