@@ -12,7 +12,7 @@ services:
     image: delphi
     stdin_open: true
     ports:
-      - "5000:5000"
+      - "6969:6969"
     tty: true
     networks:
       - proxy-web-network

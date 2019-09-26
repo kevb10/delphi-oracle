@@ -9,5 +9,5 @@ sed -i 's/pandas.io.json.normalize/pandas.io.json._normalize/g' /usr/local/lib/p
 
 # Start server
 echo "Starting server"
-flask run --host=0.0.0.0
+flask run --host=0.0.0.0 --port=6969
 
