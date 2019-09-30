@@ -51,17 +51,39 @@
     <!-- Begin page content -->
     <main role="main" class="flex-shrink-0">
         <div class="container">
-            <h1 class="mt-5">Analyze</h1>
+            <h2 class="mt-5">💡 Analyze</h2>
             <span>Please enter the stock symbol you'd like to analyze.</span>
             <div>
                 <form action="{{ url_for('main') }}" method="post">
-                    <input type="text" name="symbol">
-                    <input type="submit" value="GO">
+                    <input type="text" placeholder="AMZN" name="symbol">
+                    <input type="submit" value="🔍">
                 </form>
             </div>
 
             {% if future["prediction"]|length > 0 %}
+            <br />
+            <h2 class="mt-5">🕵🏽‍♂️ Algorithm Details</h2>
             <div>
+                <div>
+                    <p>If we were to start with 1000 shares a year ago, how much is it worth today?</p>
+                <table style="width:100%">
+                    <tr>
+                        <td>📈 {{ "%0.2f" | format(future["increase_accuracy"]) }}%</td>
+                        <td>😴 ${{ "%0.2f" | format(future["hold_profit"]) }}</td>
+                    </tr>
+                    <tr>
+                        <td>📉 {{ "%0.2f" | format(future["decrease_accuracy"]) }}%</td>
+                        <td>😎 ${{ "%0.2f" | format(future["pred_profit"]) }}</td>
+                    </tr>
+                    <tr>
+                        <td>👌 {{ "%0.2f" | format(future["in_range_accuracy"]) }}%</td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+            <h2 class="mt-5">📉 Weekly Forecast</h2>
+            <p>Here's a 15 day forecast of <strong>${{ future["ticker"] }}</strong>.</p>
                 <canvas id="myChart" width="400" height="400"></canvas>
                 <script>
                     var presets = window.chartColors;

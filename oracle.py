@@ -8,6 +8,7 @@ import json
 import pickle
 import csv
 import os
+import time
 from pytrends.request import TrendReq
 
 
@@ -80,7 +81,7 @@ class Oracle():
 
         # Prophet parameters
         # Default prior from library
-        self.changepoint_prior_scale = 0.05 
+        self.changepoint_prior_scale = 1
         self.weekly_seasonality = True
         self.daily_seasonality = False
         self.monthly_seasonality = True
@@ -97,7 +98,7 @@ class Oracle():
     def get_macd(self, ticker):
         url = ('https://www.alphavantage.co/query?function=MACD&symbol=' + 
         ticker + 
-        '&interval=daily&series_type=close&apikey=' + 
+        '&interval=daily&fastperiod=7&slowperiod=50&series_type=close&apikey=' + 
         self.alpha_vantage_api_key)
 
         return json.loads(self.session.get(url, verify=False).content)
@@ -286,21 +287,31 @@ class Oracle():
 
         return in_range_accuracy
 
-    def should_trade(self):
-        rsi_val = float(self.rsi_data['Technical Analysis: STOCHRSI'][self.max_date.strftime('%Y-%m-%d')]['FastD'])
-        if self.is_divergence() and rsi_val > 20:
+    def should_trade(self, ):
+        # rsi_val = float(self.rsi_data['Technical Analysis: STOCHRSI'][self.max_date.strftime('%Y-%m-%d')]['FastD'])
+
+        # Expect that a particular stock will change by 5% in one week
+        # Whether up or down
+        future = self.predict_future()
+        total_change = future['change'].sum()
+        price = future['estimate'].iloc[0]
+        percentage_change = 100 * abs(total_change) / price
+
+        import pdb;pdb.set_trace();
+
+        if percentage_change > 2:
             return True
         else:
             return False
         
     def is_divergence(self):
-        today_uptrend = False
-        today_downtrend = False
-        prev_uptrend = False
-        prev_downtrend = False
+        # today_uptrend = False
+        # today_downtrend = False
+        # prev_uptrend = False
+        # prev_downtrend = False
 
         # Let's look at the history 2 days ago
-        days_ago = 2
+        # days_ago = 2
         todays_date = self.max_date.strftime('%Y-%m-%d')
 
         today_macd_val = float(self.macd_data['Technical Analysis: MACD'][todays_date]['MACD'])
@@ -310,32 +321,34 @@ class Oracle():
 
         # Basically if the gap is big enough, then cool, otherwise no shot
         # Revist number from time to time to see if it's good enough
-        if (gap < .15):
+        if gap >= 1:
+            return True
+        else:
             return False
                 
-        if today_macd_val > today_macd_signal_val:
-            today_uptrend = True
-        else:
-            today_downtrend = True
+        # if today_macd_val > today_macd_signal_val:
+        #     today_uptrend = True
+        # else:
+        #     today_downtrend = True
 
-        for i in range(days_ago,1,-1):
-            previous_date = (self.max_date - pd.DateOffset(days=i)).strftime('%Y-%m-%d')
-            prev_macd_val = float(self.macd_data['Technical Analysis: MACD'][previous_date]['MACD'])
-            prev_macd_signal_val = float(self.macd_data['Technical Analysis: MACD'][previous_date]['MACD_Signal'])
+        # for i in range(days_ago,1,-1):
+        #     previous_date = (self.max_date - pd.DateOffset(days=i)).strftime('%Y-%m-%d')
+        #     prev_macd_val = float(self.macd_data['Technical Analysis: MACD'][previous_date]['MACD'])
+        #     prev_macd_signal_val = float(self.macd_data['Technical Analysis: MACD'][previous_date]['MACD_Signal'])
 
-            if prev_macd_val > prev_macd_signal_val:
-                prev_uptrend = True
-            else:
-                prev_downtrend = True
+        #     if prev_macd_val > prev_macd_signal_val:
+        #         prev_uptrend = True
+        #     else:
+        #         prev_downtrend = True
 
-            if today_uptrend != prev_uptrend or today_downtrend != prev_downtrend:
-                return True
+        #     if today_uptrend != prev_uptrend or today_downtrend != prev_downtrend:
+        #         return True
 
-        return False
+        # return False
 
 
     # Predict the future price for a given range of days
-    def predict_future(self, days=30):
+    def predict_future(self, days=15):
         #Set the best changepointprior
         # self.changepoint_prior_scale = self.changepoint_prior_validation()
         
@@ -385,6 +398,104 @@ class Oracle():
         
         return future
 
+    def evaluate_prediction(self, nshares=1000):
+        # Default start date is one year before end of data
+        # Default end date is end date of data
+        start_date = self.max_date - pd.DateOffset(years=1)
+        end_date = self.max_date
+            
+        start_date, end_date = self.handle_dates(start_date, end_date)
+        
+        # Training data starts self.training_years years before start date and goes up to start date
+        train = self.stock[(self.stock['timestamp'] < start_date.date()) & 
+                           (self.stock['timestamp'] > (start_date - pd.DateOffset(years=self.training_years)).date())]
+        
+        # Testing data is specified in the range
+        test = self.stock[(self.stock['timestamp'] >= start_date.date()) & (self.stock['timestamp'] <= end_date.date())]
+        
+        # Create and train the model
+        model = self.create_model()
+        model.fit(train)
+        
+        # Make a future dataframe and predictions
+        future = model.make_future_dataframe(periods = 365, freq='D')
+        future = model.predict(future)
+        
+        # Merge predictions with the known values
+        test = pd.merge(test, future, on = 'ds', how = 'inner')
+        train = pd.merge(train, future, on = 'ds', how = 'inner')
+        
+        # Calculate the differences between consecutive measurements
+        test['pred_diff'] = test['yhat'].diff()
+        test['real_diff'] = test['y'].diff()
+        
+        # Correct is when we predicted the correct direction
+        test['correct'] = (np.sign(test['pred_diff']) == np.sign(test['real_diff'])) * 1
+
+        # for i, date in enumerate(test['timestamp']):
+        #     current_date = date.strftime('%Y-%m-%d')
+        #     macd_val = float(self.macd_data['Technical Analysis: MACD'][current_date]['MACD'])
+        #     macd_signal = float(self.macd_data['Technical Analysis: MACD'][current_date]['MACD'])
+        #     import pdb;pdb.set_trace()
+
+        #     # If we predicted up and the price goes up, we gain the difference
+        #     # If we predicted up and the price goes down, we lose the difference
+        #     if macd_val > macd_signal:
+        #         test[date]['correct'] = (np.sign(test[date]['pred_diff']) == np.sign(test[date]['real_diff'])) * 1
+
+        # Accuracy when we predict increase and decrease
+        increase_accuracy = 100 * np.mean(test['correct'])
+        decrease_accuracy = 100 * np.mean(test['correct'])
+
+        # Calculate mean absolute error
+        test_errors = abs(test['y'] - test['yhat'])
+        test_mean_error = np.mean(test_errors)
+
+        train_errors = abs(train['y'] - train['yhat'])
+        train_mean_error = np.mean(train_errors)
+
+        # Calculate percentage of time actual value within prediction range
+        test['in_range'] = False
+
+        for i in test.index:
+            if (test.ix[i, 'y'] < test.ix[i, 'yhat_upper']) & (test.ix[i, 'y'] > test.ix[i, 'yhat_lower']):
+                test.ix[i, 'in_range'] = True
+
+        in_range_accuracy = 100 * np.mean(test['in_range'])
+            
+        # Only playing the stocks when we predict the stock will increase
+        test_pred_increase = test[test['pred_diff'] > 0]
+        
+        test_pred_increase.reset_index(inplace=True)
+        prediction_profit = []
+        
+        # Iterate through all the predictions and calculate profit from playing
+        # We don't just calculate the part where our predictions are correct
+        # We need to add the technical analysis to confirm our prediction
+        for i, date in enumerate(test_pred_increase['timestamp']):
+            current_date = date.strftime('%Y-%m-%d')
+            macd_val = float(self.macd_data['Technical Analysis: MACD'][current_date]['MACD'])
+            macd_signal = float(self.macd_data['Technical Analysis: MACD'][current_date]['MACD'])
+
+            # If we predicted up and the price goes up, we gain the difference
+            # If we predicted up and the price goes down, we lose the difference
+            if macd_val > macd_signal:
+                prediction_profit.append(nshares * test_pred_increase.ix[i, 'real_diff'])
+            else: 
+                prediction_profit.append(nshares * 1)
+        
+        test_pred_increase['pred_profit'] = prediction_profit
+        
+        # Put the profit into the test dataframe
+        test = pd.merge(test, test_pred_increase[['ds', 'pred_profit']], on = 'ds', how = 'left')
+        test.ix[0, 'pred_profit'] = 0
+    
+        # Profit for either method at all dates
+        test['pred_profit'] = test['pred_profit'].cumsum().ffill()
+        test['hold_profit'] = nshares * (test['y'] - float(test.ix[0, 'y']))
+            
+        return in_range_accuracy, increase_accuracy, decrease_accuracy, test['pred_profit'].iloc[-1], test['hold_profit'].iloc[-1]
+        
 
     def changepoint_prior_validation(self):
         # Default start date is two years before end of data
@@ -465,6 +576,7 @@ class Oracle():
                 try:
                     if self.should_trade():
                         report.write(company + "\n")
+                    time.sleep(30)
 
                 except Exception as e:
                     print(e)
