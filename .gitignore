@@ -86,4 +86,5 @@ dmypy.json
 # My own
 persistence/*
 
-# End of https://www.gitignore.io/api/linux,flask,python,windows
+.DS_Store
+
