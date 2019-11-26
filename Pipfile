@@ -10,7 +10,6 @@ pylint = "*"
 pandas = ">=0.25.*"
 numpy = ">=1.17.*"
 pytrends = ">=4.6.*"
-flask = ">=1.1.*"
 pystan = "*"
 fbprophet = "*"
 
