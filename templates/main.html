@@ -66,24 +66,24 @@
             <div>
                 <div>
                     <p>If we were to start with 1000 shares a year ago, how much is it worth today?</p>
-                <table style="width:100%">
-                    <tr>
-                        <td>📈 {{ "%0.2f" | format(future["increase_accuracy"]) }}%</td>
-                        <td>😴 ${{ "%0.2f" | format(future["hold_profit"]) }}</td>
-                    </tr>
-                    <tr>
-                        <td>📉 {{ "%0.2f" | format(future["decrease_accuracy"]) }}%</td>
-                        <td>😎 ${{ "%0.2f" | format(future["pred_profit"]) }}</td>
-                    </tr>
-                    <tr>
-                        <td>👌 {{ "%0.2f" | format(future["in_range_accuracy"]) }}%</td>
-                        <td></td>
-                    </tr>
-                </table>
-            </div>
-            <br />
-            <h2 class="mt-5">📉 Weekly Forecast</h2>
-            <p>Here's a 15 day forecast of <strong>${{ future["ticker"] }}</strong>.</p>
+                    <table style="width:100%">
+                        <tr>
+                            <td>📈 {{ "%0.2f" | format(future["increase_accuracy"]) }}%</td>
+                            <td>😴 ${{ "%0.2f" | format(future["hold_profit"]) }}</td>
+                        </tr>
+                        <tr>
+                            <td>📉 {{ "%0.2f" | format(future["decrease_accuracy"]) }}%</td>
+                            <td>😎 ${{ "%0.2f" | format(future["pred_profit"]) }}</td>
+                        </tr>
+                        <tr>
+                            <td>👌 {{ "%0.2f" | format(future["in_range_accuracy"]) }}%</td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+                <br />
+                <h2 class="mt-5">📉 Weekly Forecast</h2>
+                <p>Here's a 15 day forecast of <strong>${{ future["ticker"] }}</strong>.</p>
                 <canvas id="myChart" width="400" height="400"></canvas>
                 <script>
                     var presets = window.chartColors;

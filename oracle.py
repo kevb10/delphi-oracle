@@ -12,11 +12,15 @@ import time
 from pytrends.request import TrendReq
 
 
-# Class for analyzing and (attempting) to predict future prices
-# Contains a number of visualizations and analysis methods
+"""
+Class for analyzing and (attempting) to predict future prices
+Contains a number of visualizations and analysis methods
+"""
 class Oracle():
     
-    # Initialization requires a ticker symbol
+    """
+    Initialization requires a ticker symbol
+    """
     def __init__(self, ticker, sesh):
         # Enforce capitalization
         ticker = ticker.strip().upper()
@@ -88,7 +92,9 @@ class Oracle():
         self.yearly_seasonality = True
         self.changepoints = None
  
-
+    """
+    Manually close session
+    """
     def close(self):
         self.session.close()
 
@@ -196,7 +202,9 @@ class Oracle():
             
         return trim_df
     
-    # Remove weekends from a dataframe
+    """
+    Remove weekends from a dataframe
+    """
     def remove_weekends(self, dataframe):
         
         # Reset index to use ix
@@ -214,7 +222,9 @@ class Oracle():
         
         return dataframe
         
-    # Create a Facebook prophet model without training
+    """
+    Create a Facebook prophet model without training
+    """
     def create_model(self):
 
         # Make the model
@@ -230,7 +240,9 @@ class Oracle():
         
         return model
       
-    # Find accuracy
+    """
+    Find accuracy
+    """
     def find_accuracy(self):
         # Default start date is one year before end of data
         # Default end date is end date of data
@@ -287,85 +299,15 @@ class Oracle():
 
         return in_range_accuracy
 
-    def should_trade(self, ):
-        # rsi_val = float(self.rsi_data['Technical Analysis: STOCHRSI'][self.max_date.strftime('%Y-%m-%d')]['FastD'])
-
-        # Expect that a particular stock will change by 5% in one week
-        # Whether up or down
-        future = self.predict_future()
-        total_change = future['change'].sum()
-        price = future['estimate'].iloc[0]
-        percentage_change = 100 * abs(total_change) / price
-
-        import pdb;pdb.set_trace();
-
-        if percentage_change > 2:
-            return True
-        else:
-            return False
-        
-    def is_divergence(self):
-        # today_uptrend = False
-        # today_downtrend = False
-        # prev_uptrend = False
-        # prev_downtrend = False
-
-        # Let's look at the history 2 days ago
-        # days_ago = 2
-        todays_date = self.max_date.strftime('%Y-%m-%d')
-
-        today_macd_val = float(self.macd_data['Technical Analysis: MACD'][todays_date]['MACD'])
-        today_macd_signal_val = float(self.macd_data['Technical Analysis: MACD'][todays_date]['MACD_Signal'])
-
-        gap = abs(today_macd_val - today_macd_signal_val)
-
-        # Basically if the gap is big enough, then cool, otherwise no shot
-        # Revist number from time to time to see if it's good enough
-        if gap >= 1:
-            return True
-        else:
-            return False
-                
-        # if today_macd_val > today_macd_signal_val:
-        #     today_uptrend = True
-        # else:
-        #     today_downtrend = True
-
-        # for i in range(days_ago,1,-1):
-        #     previous_date = (self.max_date - pd.DateOffset(days=i)).strftime('%Y-%m-%d')
-        #     prev_macd_val = float(self.macd_data['Technical Analysis: MACD'][previous_date]['MACD'])
-        #     prev_macd_signal_val = float(self.macd_data['Technical Analysis: MACD'][previous_date]['MACD_Signal'])
-
-        #     if prev_macd_val > prev_macd_signal_val:
-        #         prev_uptrend = True
-        #     else:
-        #         prev_downtrend = True
-
-        #     if today_uptrend != prev_uptrend or today_downtrend != prev_downtrend:
-        #         return True
-
-        # return False
-
-
-    # Predict the future price for a given range of days
+    """
+    Predict the future price for a given range of days (15 by default)
+    """
     def predict_future(self, days=15):
-        #Set the best changepointprior
-        # self.changepoint_prior_scale = self.changepoint_prior_validation()
         start_date = self.max_date - pd.DateOffset(years=1)
         end_date = self.max_date
             
         start_date, end_date = self.handle_dates(start_date, end_date) 
-        #model = None
-        #isNew = False
 
-        #if not os.path.exists('persistence/' + self.symbol):
-        #    with open('persistence/' + self.symbol, 'w'): pass
-        #else:
-        #    if os.path.getsize('persistence/' + self.symbol) > 0:
-        #        with open('persistence/' + self.symbol, 'rb') as handle:
-        #            model = pickle.load(handle)
-
-        #if model is None:
         # Use past self.training_years years for training
         train = self.stock[self.stock['timestamp'] > (max(self.stock['timestamp']) - pd.DateOffset(years=self.training_years)).date()]
         # Testing data is specified in the range
@@ -373,12 +315,10 @@ class Oracle():
 
         model = self.create_model()
         model.fit(train)
-        #isNew = True
 
         # Future dataframe with specified number of days to predict
         future = model.make_future_dataframe(periods=days, freq='D')
-        future = model.predict(future)
-        
+        future = model.predict(future)  
          
         # Merge predictions with the known values
         test = pd.merge(test, future, on = 'ds', how = 'inner')
@@ -402,7 +342,6 @@ class Oracle():
         train_errors = abs(train['y'] - train['yhat'])
         train_mean_error = np.mean(train_errors)
 
-
         # Only concerned with future dates
         future = future[future['ds'] >= max(self.stock['timestamp']).date()]
         
@@ -422,12 +361,11 @@ class Oracle():
         future = future.rename(columns={'ds': 'timestamp', 'yhat': 'estimate', 'diff': 'change', 
                                         'yhat_upper': 'upper', 'yhat_lower': 'lower'})
 
-        #if isNew:
-        #    with open('persistence/' + self.symbol, 'wb') as handle:
-        #        pickle.dump(model, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        
         return future
 
+    """
+    Simple backtest
+    """
     def evaluate_prediction(self, nshares=1000):
         # Default start date is one year before end of data
         # Default end date is end date of data
@@ -461,17 +399,6 @@ class Oracle():
         
         # Correct is when we predicted the correct direction
         test['correct'] = (np.sign(test['pred_diff']) == np.sign(test['real_diff'])) * 1
-
-        # for i, date in enumerate(test['timestamp']):
-        #     current_date = date.strftime('%Y-%m-%d')
-        #     macd_val = float(self.macd_data['Technical Analysis: MACD'][current_date]['MACD'])
-        #     macd_signal = float(self.macd_data['Technical Analysis: MACD'][current_date]['MACD'])
-        #     import pdb;pdb.set_trace()
-
-        #     # If we predicted up and the price goes up, we gain the difference
-        #     # If we predicted up and the price goes down, we lose the difference
-        #     if macd_val > macd_signal:
-        #         test[date]['correct'] = (np.sign(test[date]['pred_diff']) == np.sign(test[date]['real_diff'])) * 1
 
         # Accuracy when we predict increase and decrease
         increase_accuracy = 100 * np.mean(test['correct'])
@@ -526,7 +453,6 @@ class Oracle():
             
         return in_range_accuracy, increase_accuracy, decrease_accuracy, test['pred_profit'].iloc[-1], test['hold_profit'].iloc[-1]
         
-
     def changepoint_prior_validation(self):
         # Default start date is two years before end of data
         # Default end date is one year before end of data
@@ -596,11 +522,13 @@ class Oracle():
 
         return best_cps_val
 
+    """
+    Write to an external file
+    """
     def report(self):
         # Find me some money makers given a list
         # of all publicly traded companies
         companies = pd.read_table("companies.csv", sep=",")
-        # errors = ""
         with open("report.txt", "a+") as report:
             for company in companies:
                 try:
