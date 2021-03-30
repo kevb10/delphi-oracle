@@ -20,7 +20,7 @@ class Oracle():
     def __init__(self, ticker, sesh):
         # Enforce capitalization
         ticker = ticker.strip().upper()
-        self.alpha_vantage_api_key = 'YHST3SHIZZX5VRUA'
+        self.alpha_vantage_api_key = 'AM8OXAB5LUDXOJ8D'
 
         self.session = sesh 
 
@@ -351,29 +351,58 @@ class Oracle():
     def predict_future(self, days=15):
         #Set the best changepointprior
         # self.changepoint_prior_scale = self.changepoint_prior_validation()
-        
-        model = None
-        isNew = False
-
-        if not os.path.exists('persistence/' + self.symbol):
-            with open('persistence/' + self.symbol, 'w'): pass
-        else:
-            if os.path.getsize('persistence/' + self.symbol) > 0:
-                with open('persistence/' + self.symbol, 'rb') as handle:
-                    model = pickle.load(handle)
-
-        if model is None:
-            # Use past self.training_years years for training
-            train = self.stock[self.stock['timestamp'] > (max(self.stock['timestamp']) - pd.DateOffset(years=self.training_years)).date()]
+        start_date = self.max_date - pd.DateOffset(years=1)
+        end_date = self.max_date
             
-            model = self.create_model()
-            model.fit(train)
-            isNew = True
+        start_date, end_date = self.handle_dates(start_date, end_date) 
+        #model = None
+        #isNew = False
+
+        #if not os.path.exists('persistence/' + self.symbol):
+        #    with open('persistence/' + self.symbol, 'w'): pass
+        #else:
+        #    if os.path.getsize('persistence/' + self.symbol) > 0:
+        #        with open('persistence/' + self.symbol, 'rb') as handle:
+        #            model = pickle.load(handle)
+
+        #if model is None:
+        # Use past self.training_years years for training
+        train = self.stock[self.stock['timestamp'] > (max(self.stock['timestamp']) - pd.DateOffset(years=self.training_years)).date()]
+        # Testing data is specified in the range
+        test = self.stock[(self.stock['timestamp'] >= start_date.date()) & (self.stock['timestamp'] <= end_date.date())]
+
+        model = self.create_model()
+        model.fit(train)
+        #isNew = True
 
         # Future dataframe with specified number of days to predict
         future = model.make_future_dataframe(periods=days, freq='D')
         future = model.predict(future)
-            
+        
+         
+        # Merge predictions with the known values
+        test = pd.merge(test, future, on = 'ds', how = 'inner')
+        train = pd.merge(train, future, on = 'ds', how = 'inner')
+        
+        # Calculate the differences between consecutive measurements
+        test['pred_diff'] = test['yhat'].diff()
+        test['real_diff'] = test['y'].diff()
+        
+        # Correct is when we predicted the correct direction
+        test['correct'] = (np.sign(test['pred_diff']) == np.sign(test['real_diff'])) * 1
+        
+        # Accuracy when we predict increase and decrease
+        increase_accuracy = 100 * np.mean(test[test['pred_diff'] > 0]['correct'])
+        decrease_accuracy = 100 * np.mean(test[test['pred_diff'] < 0]['correct'])
+
+        # Calculate mean absolute error
+        test_errors = abs(test['y'] - test['yhat'])
+        test_mean_error = np.mean(test_errors)
+
+        train_errors = abs(train['y'] - train['yhat'])
+        train_mean_error = np.mean(train_errors)
+
+
         # Only concerned with future dates
         future = future[future['ds'] >= max(self.stock['timestamp']).date()]
         
@@ -386,15 +415,16 @@ class Oracle():
         future = future.dropna()
 
         # Find the prediction direction and create separate dataframes
-        future['direction'] = (future['diff'] > 0) * 1
+        future['increase_accuracy'] = increase_accuracy
+        future['decrease_accuracy'] = decrease_accuracy
         
         # Rename the columns for presentation
         future = future.rename(columns={'ds': 'timestamp', 'yhat': 'estimate', 'diff': 'change', 
                                         'yhat_upper': 'upper', 'yhat_lower': 'lower'})
 
-        if isNew:
-            with open('persistence/' + self.symbol, 'wb') as handle:
-                pickle.dump(model, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        #if isNew:
+        #    with open('persistence/' + self.symbol, 'wb') as handle:
+        #        pickle.dump(model, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
         return future
 
